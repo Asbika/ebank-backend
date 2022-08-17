@@ -2,6 +2,7 @@ package com.example.ebankbackend;
 
 
 
+import com.example.ebankbackend.dtos.CustomerDTO;
 import com.example.ebankbackend.entities.*;
 import com.example.ebankbackend.enums.AccountStatus;
 import com.example.ebankbackend.exceptions.BalanceNotSufficientException;
@@ -37,10 +38,10 @@ public class EbankBackendApplication {
         return args -> {
 
             Stream.of("Hassan","Imane","Mohamed").forEach(name->{
-                    Customer customer = new Customer();
-                    customer.setName(name);
-                    customer.setEmail(name+"@gmail.com");
-                    bankAccountService.saveCustomer(customer);
+                    CustomerDTO customerDTO = new CustomerDTO();
+                    customerDTO.setName(name);
+                    customerDTO.setEmail(name+"@gmail.com");
+                    bankAccountService.saveCustomer(customerDTO);
             });
             bankAccountService.listCustomers().forEach(customer->{
                 try {

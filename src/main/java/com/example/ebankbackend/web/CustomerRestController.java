@@ -1,12 +1,11 @@
 package com.example.ebankbackend.web;
 
-import com.example.ebankbackend.entities.Customer;
+import com.example.ebankbackend.dtos.CustomerDTO;
+import com.example.ebankbackend.exceptions.CustomerNotFoundException;
 import com.example.ebankbackend.services.BankAccountService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -16,8 +15,19 @@ public class CustomerRestController {
     @Autowired
     private BankAccountService bankAccountService;
 
+
     @GetMapping("/customers")
-    public List<Customer> customers(){
+    public List<CustomerDTO> customers(){
         return bankAccountService.listCustomers();
     }
+    /*Exception-Based-Surveillance*/
+    @GetMapping("/customers/{id}")
+    public CustomerDTO getCustomer(@PathVariable(name = "id") Long customerId) throws CustomerNotFoundException {
+        return  bankAccountService.getCustomer(customerId);
+    }
+    @PostMapping("/customers")
+    public CustomerDTO saveCustomer(@RequestBody CustomerDTO customerDTO){
+        return bankAccountService.saveCustomer(customerDTO);
+    }
+
 }

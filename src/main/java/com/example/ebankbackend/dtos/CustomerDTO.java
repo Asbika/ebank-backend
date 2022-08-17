@@ -3,7 +3,7 @@ package com.example.ebankbackend.dtos;
 import lombok.Data;
 
 @Data
-public class CustomerDto {
+public class CustomerDTO {
 
         private Long id;
         private String name;
