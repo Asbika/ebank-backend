@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
 
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -156,5 +155,19 @@ public class BankAccountServiceImpl implements BankAccountService{
         Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new CustomerNotFoundException("Customer Not found"));
         return  dtoMapper.fromCustomer(customer);
+    }
+
+    @Override
+    public CustomerDTO updateCustomer(CustomerDTO customerDTO){
+        log.info("updating Customer");
+        Customer customer = dtoMapper.fromCustomerDto(customerDTO);
+        Customer updatedCustomer = customerRepository.save(customer);
+        return dtoMapper.fromCustomer(updatedCustomer);
+    }
+
+    @Override
+    public void deleteCustomer(Long customerId){
+        log.info("deleting customer");
+        customerRepository.deleteById(customerId);
     }
 }
