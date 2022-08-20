@@ -1,8 +1,9 @@
 package com.example.ebankbackend;
 
-
-
+import com.example.ebankbackend.dtos.BankAccountDTO;
+import com.example.ebankbackend.dtos.CurrentBankAccountDTO;
 import com.example.ebankbackend.dtos.CustomerDTO;
+import com.example.ebankbackend.dtos.SavingBankAccountDTO;
 import com.example.ebankbackend.entities.*;
 import com.example.ebankbackend.enums.AccountStatus;
 import com.example.ebankbackend.exceptions.BalanceNotSufficientException;
@@ -47,11 +48,17 @@ public class EbankBackendApplication {
                 try {
                     bankAccountService.saveCurrentBankAccount(Math.random()*90000,9000,customer.getId());
                     bankAccountService.saveSavingBankAccount(Math.random()*120000,5.5,customer.getId());
-                    List<BankAccount> bankAccountLists =bankAccountService.getBankAccountList();
-                    for(BankAccount bankAccount : bankAccountLists){
+                    List<BankAccountDTO> bankAccountLists =bankAccountService.getBankAccountList();
+                    for(BankAccountDTO bankAccountDTO : bankAccountLists){
                         for(int i=0 ; i<5 ; i++){
-                            bankAccountService.credit(bankAccount.getId(), 10000+Math.random()*120000,"Credit");
-                            bankAccountService.debit(bankAccount.getId(), 1000+Math.random()*9000,"Debit");
+                            String accountId;
+                            if(bankAccountDTO instanceof SavingBankAccountDTO){
+                                accountId=((SavingBankAccountDTO) bankAccountDTO).getId();
+                            }else{
+                                accountId=((CurrentBankAccountDTO) bankAccountDTO).getId();
+                            }
+                            bankAccountService.credit(accountId, 10000+Math.random()*120000,"Credit");
+                            bankAccountService.debit(accountId, 1000+Math.random()*9000,"Debit");
 
                         }
                     }
