@@ -130,10 +130,10 @@ public class BankAccountServiceImpl implements BankAccountService{
                 .orElseThrow(()-> new BankAccountNotFoundException("BankAccount not found"));
         if(bankAccount.getBalance()<amount)
             throw new BalanceNotSufficientException("Balance not sufficient");
+
         AccountOperation accountOperation = new AccountOperation();
         accountOperation.setType(OperationType.DEBIT);
         accountOperation.setDescription(description);
-        accountOperation.setOperationDate(new Date());
         accountOperation.setAmount(amount);
         accountOperation.setBankAccount(bankAccount);
         accountOperationRepository.save(accountOperation);

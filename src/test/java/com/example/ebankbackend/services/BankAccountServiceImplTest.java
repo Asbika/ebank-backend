@@ -1,13 +1,14 @@
 package com.example.ebankbackend.services;
 
 import com.example.ebankbackend.dtos.CustomerDTO;
-import com.example.ebankbackend.entities.AccountOperation;
-import com.example.ebankbackend.entities.BankAccount;
-import com.example.ebankbackend.entities.CurrentAccount;
-import com.example.ebankbackend.entities.Customer;
+import com.example.ebankbackend.entities.*;
 import com.example.ebankbackend.enums.AccountStatus;
+import com.example.ebankbackend.enums.OperationType;
+import com.example.ebankbackend.exceptions.BalanceNotSufficientException;
+import com.example.ebankbackend.exceptions.BankAccountNotFoundException;
 import com.example.ebankbackend.exceptions.CustomerNotFoundException;
 import com.example.ebankbackend.mappers.BankAccountMapperImpl;
+import com.example.ebankbackend.repositories.AccountOperationRepository;
 import com.example.ebankbackend.repositories.BankAccountRepository;
 import com.example.ebankbackend.repositories.CustomerRepository;
 import org.aspectj.lang.annotation.Before;
@@ -26,7 +27,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.*;
 
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -40,6 +41,8 @@ class BankAccountServiceImplTest {
     private BankAccountMapperImpl dtoMapper;
     @Mock
     private BankAccountRepository bankAccountRepository;
+    @Mock
+    AccountOperationRepository accountOperationRepository;
     @Mock
     private CustomerRepository customerRepository;
 
@@ -109,19 +112,139 @@ class BankAccountServiceImplTest {
     }
 
     @Test
-    void saveSavingBankAccount() {
+    void saveSavingBankAccount() throws CustomerNotFoundException {
+        //given
+        Customer customer = new Customer();
+        Long customerId=1L;
+        String name="customer";
+        String email="customer@gmail.com";
+        customer.setId(customerId);
+        customer.setName(name);
+        customer.setEmail(email);
+        double initialBalance=1900.00;
+        double interestRate=5.1;
+        SavingAccount savingAccount = new SavingAccount();
+        savingAccount.setId(UUID.randomUUID().toString());
+        savingAccount.setCreationDat(new Date());
+        savingAccount.setBalance(initialBalance);
+        savingAccount.setInterestRate(interestRate);
+        savingAccount.setCustomer(customer);
+        //when
+        Mockito.when(customerRepository.findById(customerId)).thenReturn(Optional.of(customer));
+        bankAccountServiceImpl.saveSavingBankAccount(initialBalance,interestRate,customerId);
+        //then
+        verify(bankAccountRepository,times(1)).save(savingAccount);
     }
-
+    @Test
+    void saveSavingBankAccountNotFound(){
+        //given
+        Long customerId=1L;
+        double initialBalance=1900.00;
+        double interestRate=5.1;
+        //when
+        Mockito.when(customerRepository.findById(customerId)).thenReturn(Optional.ofNullable(null));
+        try {
+            bankAccountServiceImpl.saveSavingBankAccount(initialBalance, interestRate, customerId);
+        }catch(CustomerNotFoundException e){
+            Assertions.assertEquals("Customer not found",e.getMessage());
+        }
+        //then
+        verify(bankAccountRepository,Mockito.never()).save(any());
+    }
     @Test
     void listCustomers() {
+        //given
+        Long customerId=1L;
+        Customer customer = new Customer();
+        customer.setId(customerId);
+        customer.setName("Customer");
+        customer.setEmail("Customer@gmail.com");
+        //when
+        Mockito.when(customerRepository.findAll()).thenReturn(Collections.singletonList(customer));
+        bankAccountServiceImpl.listCustomers();
+        //then
+        verify(customerRepository,times(1)).findAll();
     }
 
     @Test
-    void getBankAccount() {
+    void getBankAccountAsSavingAccount() throws BankAccountNotFoundException {
+        //given
+        String accountId = "15bc138b-2e1c-44eb-8a3b-c3691c56c37c";
+        double initialBalance=1900.00;
+        double interestRate=5.1;
+        SavingAccount savingAccount=new SavingAccount();
+        savingAccount.setId(UUID.randomUUID().toString());
+        savingAccount.setCreationDat(new Date());
+        savingAccount.setBalance(initialBalance);
+        savingAccount.setInterestRate(interestRate);
+
+        //when
+        Mockito.when(bankAccountRepository.findById(accountId)).thenReturn(Optional.of(savingAccount));
+        bankAccountServiceImpl.getBankAccount(accountId);
+
+        //then
+        Assertions.assertNotNull(savingAccount);
+        Assertions.assertTrue(savingAccount instanceof SavingAccount );
     }
 
     @Test
-    void debit() {
+    void getBankAccountAsCurrentAccount() throws BankAccountNotFoundException {
+        //given
+        String accountId = "15bc138b-2e1c-44eb-8a3b-c3691c56c37c";
+        double initialBalance=1900.00;
+        double overDraft=900;
+        CurrentAccount currentAccount=new CurrentAccount();
+        currentAccount.setId(UUID.randomUUID().toString());
+        currentAccount.setCreationDat(new Date());
+        currentAccount.setBalance(initialBalance);
+        currentAccount.setOverDraft(overDraft);
+
+        //when
+        Mockito.when(bankAccountRepository.findById(accountId)).thenReturn(Optional.of(currentAccount));
+        bankAccountServiceImpl.getBankAccount(accountId);
+
+        //then
+        Assertions.assertNotNull(currentAccount);
+        Assertions.assertTrue(currentAccount instanceof CurrentAccount );
+    }
+
+    @Test
+    void getBankAccountNotFound(){
+        //given
+        String accountId = "15bc138b-2e1c-44eb-8a3b-c3691c56c37c";
+        //when
+        Mockito.when(bankAccountRepository.findById(accountId)).thenReturn(Optional.ofNullable(null));
+        try {
+            bankAccountServiceImpl.getBankAccount(accountId);
+        }catch(BankAccountNotFoundException e){
+            Assertions.assertEquals("BankAccount not found",e.getMessage());
+        }
+    }
+    @Test
+    void debit() throws BankAccountNotFoundException, BalanceNotSufficientException {
+        //given
+        String accountId = "15bc138b-2e1c-44eb-8a3b-c3691c56c37c";
+        double amount = 1900.00;
+        String description = "debit";
+        BankAccount bankAccount = new CurrentAccount();
+        double balance = 2000.00;
+        Date creationDat = new Date();
+        bankAccount.setBalance(balance);
+        bankAccount.setCreationDat(creationDat);
+
+        AccountOperation accountOperation = new AccountOperation();
+        accountOperation.setType(OperationType.DEBIT);
+        accountOperation.setDescription(description);
+        accountOperation.setAmount(amount);
+        accountOperation.setBankAccount(bankAccount);
+
+        //when
+        Mockito.when(bankAccountRepository.findById(accountId)).thenReturn(Optional.of(bankAccount));
+        bankAccountServiceImpl.debit(accountId,amount,description);
+
+        //then
+        verify(accountOperationRepository,times(1)).save(accountOperation);
+        verify(bankAccountRepository,times(1)).save(bankAccount);
     }
 
     @Test
