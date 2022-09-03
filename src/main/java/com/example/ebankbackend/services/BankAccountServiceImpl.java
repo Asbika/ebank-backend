@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.SQLDataException;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -150,7 +151,6 @@ public class BankAccountServiceImpl implements BankAccountService{
         AccountOperation accountOperation = new AccountOperation();
         accountOperation.setType(OperationType.CREDIT);
         accountOperation.setDescription(description);
-        accountOperation.setOperationDate(new Date());
         accountOperation.setAmount(amount);
         accountOperation.setBankAccount(bankAccount);
         accountOperationRepository.save(accountOperation);
@@ -162,11 +162,11 @@ public class BankAccountServiceImpl implements BankAccountService{
     public void transfer(String accountIdSource, String accountIdDestination, double amount) throws BankAccountNotFoundException, BalanceNotSufficientException {
         log.info("trying to transfer from account {}",accountIdSource+"to account {}",accountIdDestination);
         debit(accountIdSource,amount,"Transfer to"+accountIdDestination);
-        credit(accountIdDestination,amount,"Transfer from "+accountIdSource);
+        credit(accountIdDestination,amount,"Transfer from"+accountIdSource);
     }
 
     @Override
-    public List<BankAccountDTO> getBankAccountList(){
+    public List<BankAccountDTO> getBankAccountList() {
         log.info("trying to get bank accounts list");
         List<BankAccount> bankAccounts = bankAccountRepository.findAll();
         List<BankAccountDTO> bankAccountDTOS= bankAccounts.stream().map(bankAccount -> {
@@ -174,8 +174,8 @@ public class BankAccountServiceImpl implements BankAccountService{
                 SavingAccount savingAccount = (SavingAccount)bankAccount;
                 return dtoMapper.fromSavingBankAccount(savingAccount);
             }else{
-                    CurrentAccount currentAccount = (CurrentAccount)bankAccount;
-                    return dtoMapper.fromCurrentBankAccount(currentAccount);
+                CurrentAccount currentAccount = (CurrentAccount)bankAccount;
+                return dtoMapper.fromCurrentBankAccount(currentAccount);
             }
         }).collect(Collectors.toList());
 
@@ -213,7 +213,8 @@ public class BankAccountServiceImpl implements BankAccountService{
     @Override
     public AccountHistoryDTO getAccountHistory(String accountId, int page, int size) throws BankAccountNotFoundException {
         log.info("trying to get a page of account history for account {}",accountId);
-        BankAccount bankAccount = bankAccountRepository.findById(accountId).orElse(null);
+        BankAccount bankAccount = bankAccountRepository.findById(accountId)
+                .orElse(null);
         if(bankAccount==null) throw new BankAccountNotFoundException("Account not Found");
         Page<AccountOperation> accountOperations =accountOperationRepository.findByBankAccount_Id(accountId, PageRequest.of(page,size));
         AccountHistoryDTO accountHistoryDTO = new AccountHistoryDTO();
