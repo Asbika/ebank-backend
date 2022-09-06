@@ -1,10 +1,11 @@
 package com.example.ebankbackend.entities;
 
-import com.example.ebankbackend.enums.OperationType;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import com.example.ebankbackend.enums.*;
 import javax.persistence.*;
 import java.util.Date;
 @Entity
@@ -21,4 +22,6 @@ public class AccountOperation {
     private OperationType type;
     @ManyToOne
     private BankAccount bankAccount;
+
+    private String description;
 }

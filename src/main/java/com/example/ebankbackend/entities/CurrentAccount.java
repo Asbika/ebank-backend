@@ -8,7 +8,7 @@ import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
 
 @Entity
-@DiscriminatorValue("CC")
+@DiscriminatorValue("CA")
 @Data
 @NoArgsConstructor @AllArgsConstructor
 public class CurrentAccount extends BankAccount{
