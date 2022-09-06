@@ -26,7 +26,7 @@ public class BankAccountRestAPI {
     }
 
     @GetMapping("/accounts")
-    public List<BankAccountDTO> listAccounts(){
+    public List<BankAccountDTO> listAccounts() {
         return bankAccountService.getBankAccountList();
     }
 
