@@ -6,13 +6,11 @@ import com.example.ebankbackend.dtos.BankAccountDTO;
 import com.example.ebankbackend.exceptions.BankAccountNotFoundException;
 import com.example.ebankbackend.services.BankAccountService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@CrossOrigin("*")
 
 @RestController
 public class BankAccountRestAPI {

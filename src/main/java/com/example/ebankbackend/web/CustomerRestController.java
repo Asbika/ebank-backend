@@ -11,24 +11,32 @@ import java.util.List;
 
 @RestController
 @Slf4j
+@CrossOrigin("*")
 public class CustomerRestController {
     @Autowired
     private BankAccountService bankAccountService;
 
 
     @GetMapping("/customers")
-    public List<CustomerDTO> customers(){
+    public List<CustomerDTO> customers() {
         return bankAccountService.listCustomers();
     }
-    /*Exception-Based-Surveillance*/
+
+    @GetMapping("/customers/search")
+    public List<CustomerDTO> searchCustomers(@RequestParam(name = "keyword", defaultValue = "") String keyword) {
+        return bankAccountService.searchCustomers("%" + keyword + "%");
+    }
+
     @GetMapping("/customers/{id}")
     public CustomerDTO getCustomer(@PathVariable(name = "id") Long customerId) throws CustomerNotFoundException {
-        return  bankAccountService.getCustomer(customerId);
+        return bankAccountService.getCustomer(customerId);
     }
+
     @PostMapping("/customers")
-    public CustomerDTO saveCustomer(@RequestBody CustomerDTO customerDTO){
+    public CustomerDTO saveCustomer(@RequestBody CustomerDTO customerDTO) {
         return bankAccountService.saveCustomer(customerDTO);
     }
+
     @PutMapping("/customers/{customerId}")
     public CustomerDTO updateCustomer(@PathVariable Long customerId,@RequestBody CustomerDTO customerDTO){
         customerDTO.setId(customerId);

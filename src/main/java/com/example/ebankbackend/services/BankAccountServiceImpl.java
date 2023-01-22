@@ -11,16 +11,12 @@ import com.example.ebankbackend.repositories.AccountOperationRepository;
 import com.example.ebankbackend.repositories.BankAccountRepository;
 import com.example.ebankbackend.repositories.CustomerRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.logging.log4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
-
 import org.springframework.transaction.annotation.Transactional;
 
-import java.sql.SQLDataException;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -135,6 +131,7 @@ public class BankAccountServiceImpl implements BankAccountService{
         AccountOperation accountOperation = new AccountOperation();
         accountOperation.setType(OperationType.DEBIT);
         accountOperation.setDescription(description);
+        accountOperation.setOperationDate(new Date());
         accountOperation.setAmount(amount);
         accountOperation.setBankAccount(bankAccount);
         accountOperationRepository.save(accountOperation);
@@ -151,6 +148,7 @@ public class BankAccountServiceImpl implements BankAccountService{
         AccountOperation accountOperation = new AccountOperation();
         accountOperation.setType(OperationType.CREDIT);
         accountOperation.setDescription(description);
+        accountOperation.setOperationDate(new Date());
         accountOperation.setAmount(amount);
         accountOperation.setBankAccount(bankAccount);
         accountOperationRepository.save(accountOperation);
@@ -226,5 +224,13 @@ public class BankAccountServiceImpl implements BankAccountService{
         accountHistoryDTO.setPageSize(size);
         accountHistoryDTO.setTotalPages(accountOperations.getTotalPages());
         return accountHistoryDTO;
+    }
+
+    @Override
+    public List<CustomerDTO> searchCustomers(String keyword) {
+        List<Customer> customers = customerRepository.searchCustomer(keyword);
+        List<CustomerDTO> customerDTOS = customers.stream().map(cust -> dtoMapper.fromCustomer(cust)).collect(Collectors.toList());
+
+        return customerDTOS;
     }
 }
